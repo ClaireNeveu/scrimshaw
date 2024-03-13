@@ -9,28 +9,44 @@
       .main {
          margin-left: 50px;
       }
-   </style>>
+   </style>
 </head>
 
 <body>
    <h1>Hello, World!</h1>
+   <pre><code>
+   &lt;!-- in scrim-shaw mode regular elements evaluate their attributes as javascript--&gt;
+   &lt;p is=&quot;scrim-shaw&quot; color=&quot;5 + 3&quot;&gt;Testing&lt;/p&gt;
+   &lt;s-let name=&quot;testValue&quot; value=&quot;5&quot;&gt;&lt;/s-let&gt;
+   &lt;s-let name=&quot;testObs&quot; value=&quot;'initial'&quot; observable&gt;&lt;/s-let&gt;
+   &lt;s-let name=&quot;testValue2&quot;&gt;
+      &lt;button&gt;test button&lt;/button&gt;
+   &lt;/s-let&gt;
+   </code></pre>
    <!-- in scrim-shaw mode regular elements evaluate their attributes as javascript-->
    <p is="scrim-shaw" color="5 + 3">Testing</p>
-
    <s-let name="testValue" value="5"></s-let>
-
    <s-let name="testObs" value="'initial'" observable></s-let>
-
-   <hr />
-
-   Observable: <s-use value="vars.testObs"></s-use><br />
-   <input type="text" onInput="vars.testObs.set(this.value)" />
-
    <s-let name="testValue2">
       <button>test button</button>
    </s-let>
 
    <hr />
+   <pre><code>
+   Observable: &lt;s-use value=&quot;vars.testObs&quot;&gt;&lt;/s-use&gt;&lt;br /&gt;
+   &lt;input type=&quot;text&quot; onInput=&quot;vars.testObs.set(this.value)&quot; /&gt;
+   </code></pre>
+   Observable: <s-use value="vars.testObs"></s-use><br />
+   <input type="text" onInput="vars.testObs.set(this.value)" />
+
+
+   <hr />
+   <pre><code>
+   &lt;div&gt;
+   &lt;button onclick=&quot;document.querySelector('#if-1').toggle()&quot;&gt;Toggle&lt;/button&gt; 
+   &lt;s-if id=&quot;if-1&quot; condition=&quot;true&quot;&gt;This is shown&lt;/s-if&gt;
+   &lt;/div&gt;
+   </code></pre>
 
    <div>
       <button onclick="document.querySelector('#if-1').toggle()">Toggle</button> 
@@ -38,10 +54,20 @@
    </div>
    
    <hr />
+   <pre><code>
+   I like to count: &lt;s-for each=&quot;[1, 2, 3]&quot;&gt;&lt;s-item&gt;&lt;/s-item&gt;, &lt;/s-for&gt;
+   </code></pre>
 
    I like to count: <s-for each="[1, 2, 3]"><s-item></s-item>, </s-for>
 
    <hr />
+   <pre><code>
+   &lt;ul&gt;
+      &lt;s-for each=&quot;['foo', 'bar', 'baz']&quot;&gt;
+         &lt;li&gt;&lt;s-item&gt;&lt;/li&gt;
+      &lt;/s-for&gt;
+   &lt;/ul&gt;
+   </code></pre>
 
    <ul>
       <s-for each="['foo', 'bar', 'baz']">
@@ -50,6 +76,23 @@
    </ul>
 
    <hr />
+   <pre><code>
+   &lt;s-template name=&quot;layout&quot;&gt;
+      &lt;div style=&quot;display:flex&quot;&gt;
+         &lt;div class=&quot;sidebar&quot;&gt;&lt;s-slot name=&quot;sidebarContent&quot;&gt;&lt;/s-slot&gt;&lt;/div&gt;
+         &lt;div class=&quot;main&quot;&gt;&lt;s-slot name=&quot;mainContent&quot;&gt;&lt;/s-slot&gt;&lt;/div&gt;
+      &lt;/div&gt;
+   &lt;/s-template&gt;
+
+   &lt;s-use-template name=&quot;layout&quot;&gt;
+      &lt;s-slot name=&quot;sidebarContent&quot;&gt;
+         &lt;a href=&quot;/foo&quot;&gt;Foo&lt;/a&gt;&lt;br /&gt;
+         &lt;a href=&quot;/bar&quot;&gt;Bar&lt;/a&gt;&lt;br /&gt;
+         &lt;a href=&quot;/baz&quot;&gt;Baz&lt;/a&gt;
+      &lt;/s-slot&gt;
+      &lt;s-slot name=&quot;mainContent&quot;&gt;This is my cool page&lt;/s-slot&gt;
+   &lt;/s-use-template&gt;
+   </code></pre>
 
    <s-template name="layout">
       <div style="display:flex">
@@ -68,6 +111,9 @@
    </s-use-template>
 
    <hr />
+   <pre><code>
+   &lt;s-use value=&quot;vars.testValue2&quot;&gt;&lt;/s-use&gt;
+   </code></pre>
 
    <s-use value="vars.testValue2"></s-use>
 

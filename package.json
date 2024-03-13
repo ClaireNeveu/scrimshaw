@@ -1,11 +1,17 @@
 {
   "source": "src/index.ts",
-  "main": "dist/main.js",
-  "types": "dist/types.d.ts",
   "scripts": {
     "watch": "parcel watch",
     "build": "parcel build",
-    "demo": "parcel demo/index.html"
+    "demo": "parcel demo/index.html",
+    "publish-demo": "parcel build --target demo"
+  },
+  "targets": {
+    "demo": {
+      "source": "demo/index.html",
+      "publicUrl": "https://claireneveu.github.io/scrimshaw/",
+      "distDir": "docs/"
+    }
   },
   "devDependencies": {
     "parcel": "^2.12.0",
