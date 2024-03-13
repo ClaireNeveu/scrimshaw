@@ -9,7 +9,7 @@
       .main {
          margin-left: 50px;
       }
-   </style>
+   </style>>
 </head>
 
 <body>
@@ -19,23 +19,37 @@
 
    <s-let name="testValue" value="5"></s-let>
 
+   <s-let name="testObs" value="'initial'" observable></s-let>
+
+   <hr />
+
+   Observable: <s-use value="vars.testObs"></s-use><br />
+   <input type="text" onInput="vars.testObs.set(this.value)" />
+
    <s-let name="testValue2">
       <button>test button</button>
    </s-let>
+
+   <hr />
 
    <div>
       <button onclick="document.querySelector('#if-1').toggle()">Toggle</button> 
       <s-if id="if-1" condition="true">This is shown</s-if>
    </div>
    
+   <hr />
 
    I like to count: <s-for each="[1, 2, 3]"><s-item></s-item>, </s-for>
+
+   <hr />
 
    <ul>
       <s-for each="['foo', 'bar', 'baz']">
          <li><s-item></li>
       </s-for>
    </ul>
+
+   <hr />
 
    <s-template name="layout">
       <div style="display:flex">
@@ -52,6 +66,8 @@
       </s-slot>
       <s-slot name="mainContent">This is my cool page</s-slot>
    </s-use-template>
+
+   <hr />
 
    <s-use value="vars.testValue2"></s-use>
 

@@ -1,3 +1,5 @@
+import { BaseObservable, observable } from "micro-observables";
+
 const isEmptyNode = (node: Node): boolean => node?.nodeValue?.replace(/\u00a0/g, "x").trim().length == 0
 
 class ScrimshawP extends HTMLParagraphElement {
@@ -96,7 +98,7 @@ class ScrimshawFor extends HTMLElement {
 }
 
 class ScrimshawLet extends HTMLElement {
-   static observedAttributes = ['name', 'value'];
+   static observedAttributes = ['name', 'value', 'observable'];
    name: string
    value: any
    initialized: boolean
@@ -136,6 +138,9 @@ class ScrimshawLet extends HTMLElement {
          }
          case 'value': {
             this.value = eval(newValue);
+            if (this.hasAttribute('observable')) {
+               this.value = observable(this.value)
+            }
             this.initialized = true
             if (this.name) {
                globalThis.vars[this.name] = this.value;
@@ -147,25 +152,42 @@ class ScrimshawLet extends HTMLElement {
 }
 
 class ScrimshawUse extends HTMLElement {
-   static observedAttributes = ['value', 'clone'];
+   static observedAttributes = ['value', 'clone', 'b'];
    value: any
+   #renderBit: boolean = true;
+   #subscribed: boolean = false;
 
    constructor() {
       super();
    }
-   connectedCallback() {
-      console.log('mounted s-use')
+   connectedCallback() {}
+
+   render() {
+      this.#renderBit = !this.#renderBit;
+      this.setAttribute('b', `${this.#renderBit}`);
    }
 
    attributeChangedCallback(name, oldValue, newValue) {
       switch (name) {
+         case 'b':
          case 'value': {
-            this.value = eval(newValue);
-            console.log('using', name, newValue, this.value)
-            if (Array.isArray(this.value)) {
-               this.replaceChildren(...this.value)
+            if (name === 'value') {
+               this.value = eval(newValue);
+            }
+            let value = this.value;
+            if (this.value instanceof BaseObservable) {
+               value = this.value.get()
+               if (!this.#subscribed) {
+                  this.value.subscribe(() => {
+                     this.render();
+                  });
+                  this.#subscribed = true;
+               }
+            }
+            if (Array.isArray(value)) {
+               this.replaceChildren(...value)
             } else {
-               this.replaceChildren(this.value)
+               this.replaceChildren(value)
             }
             break;
          }
@@ -218,7 +240,7 @@ class ScrimshawUseTemplate extends HTMLElement {
    connectedCallback() {
    }
 
-   attributeChangedCallback(name, oldValue, newValue) { 
+   attributeChangedCallback(name, oldValue, newValue) {
       if (this.original === undefined) {
          this.original = document.createDocumentFragment();
          this.childNodes.forEach(n => this.original.appendChild(n.cloneNode(true)))

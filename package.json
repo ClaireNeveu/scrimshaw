@@ -10,5 +10,8 @@
   "devDependencies": {
     "parcel": "^2.12.0",
     "typescript": "^5.4.2"
+  },
+  "dependencies": {
+    "micro-observables": "^1.7.2"
   }
 }
