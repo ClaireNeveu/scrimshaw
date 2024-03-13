@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+   <meta charset="utf-8" />
+   <title>My First Parcel App</title>
+   <script type="module" src="../src/index.ts"></script>
+</head>
+
+<body>
+   <h1>Hello, World!</h1>
+   <p is="scrim-shaw" color="red">Testing</p>
+
+   <div>
+      <button onclick="document.querySelector('#if-1').toggle()">Toggle</button> 
+      <s-if id="if-1" condition="true">This is shown</s-if>
+   </div>
+   
+
+   I like to count: <s-for each="[1, 2, 3]"><s-item></s-item>, </s-for>
+
+   <ul>
+      <s-for each="['foo', 'bar', 'baz']">
+         <li><s-item></li>
+      </s-for>
+   </ul>
+</body>
+
+</html>
