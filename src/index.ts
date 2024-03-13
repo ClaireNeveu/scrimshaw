@@ -1,6 +1,13 @@
-import { BaseObservable, observable } from "micro-observables";
+import { BaseObservable, Observable, WritableObservable, observable } from "micro-observables";
 
 const isEmptyNode = (node: Node): boolean => node?.nodeValue?.replace(/\u00a0/g, "x").trim().length == 0
+
+type ScrimshawContext = {
+   currentObservables: Array<Observable<any>>
+}
+const scrimshawContext: ScrimshawContext = {
+   currentObservables: []
+}
 
 class ScrimshawP extends HTMLParagraphElement {
    static observedAttributes = ["color", "size"];
@@ -27,9 +34,12 @@ class ScrimshawP extends HTMLParagraphElement {
 }
 
 class ScrimshawIf extends HTMLElement {
-   static observedAttributes = ["condition", 'id', 'class'];
+   static observedAttributes = ["condition", 'id', 'class', 'b'];
    condition: boolean
    internals: ElementInternals
+   #getter: () => any
+   #subscribed: boolean = false;
+   #renderBit: boolean
 
    constructor() {
       super();
@@ -41,24 +51,36 @@ class ScrimshawIf extends HTMLElement {
       this.setAttribute('condition', `${cond}`)
    }
 
-   toggle() {
-      this.condition = !this.condition;
-      this.setAttribute('condition', `${this.condition}`)
+   render() {
+      this.#renderBit = !this.#renderBit;
+      this.setAttribute('b', `${this.#renderBit}`);
    }
 
    attributeChangedCallback(name, oldValue, newValue) {
       switch (name) {
+         case 'b':
          case 'condition': {
-            this.condition = eval(newValue);
+            if (name === 'condition') {
+               this.#getter = eval(`() => ${newValue}`);
+            }
+            this.condition = this.#getter();
+            if (!this.#subscribed) {
+               // TODO pick up new observables on subsequent calls.
+               scrimshawContext.currentObservables.forEach(o => o.subscribe(() => {
+                  this.render();
+               }));
+               this.#subscribed = true;
+            }
+            scrimshawContext.currentObservables.length = 0;
             if (this.condition) {
                this.style.display = 'inline-block';
-             } else {
+            } else {
                this.style.display = 'none';
-             }
-             break;
+            }
+            break;
          }
       }
-      
+
    }
 }
 
@@ -108,7 +130,7 @@ class ScrimshawLet extends HTMLElement {
       super();
    }
    connectedCallback() {
-      this.attachShadow({mode: 'closed'});
+      this.attachShadow({ mode: 'closed' });
    }
 
    attributeChangedCallback(name, oldValue, newValue) {
@@ -138,9 +160,6 @@ class ScrimshawLet extends HTMLElement {
          }
          case 'value': {
             this.value = eval(newValue);
-            if (this.hasAttribute('observable')) {
-               this.value = observable(this.value)
-            }
             this.initialized = true
             if (this.name) {
                globalThis.vars[this.name] = this.value;
@@ -156,13 +175,15 @@ class ScrimshawUse extends HTMLElement {
    value: any
    #renderBit: boolean = true;
    #subscribed: boolean = false;
+   #getter: () => any;
 
    constructor() {
       super();
    }
-   connectedCallback() {}
+   connectedCallback() { }
 
    render() {
+      console.log('render method');
       this.#renderBit = !this.#renderBit;
       this.setAttribute('b', `${this.#renderBit}`);
    }
@@ -172,22 +193,21 @@ class ScrimshawUse extends HTMLElement {
          case 'b':
          case 'value': {
             if (name === 'value') {
-               this.value = eval(newValue);
+               this.#getter = eval(`() => ${newValue}`);
             }
-            let value = this.value;
-            if (this.value instanceof BaseObservable) {
-               value = this.value.get()
-               if (!this.#subscribed) {
-                  this.value.subscribe(() => {
-                     this.render();
-                  });
-                  this.#subscribed = true;
-               }
+            this.value = this.#getter();
+            if (!this.#subscribed) {
+               // TODO pick up new observables on subsequent calls.
+               scrimshawContext.currentObservables.forEach(o => o.subscribe(() => {
+                  this.render();
+               }));
+               this.#subscribed = true;
             }
-            if (Array.isArray(value)) {
-               this.replaceChildren(...value)
+            scrimshawContext.currentObservables.length = 0;
+            if (Array.isArray(this.value)) {
+               this.replaceChildren(...this.value)
             } else {
-               this.replaceChildren(value)
+               this.replaceChildren(this.value)
             }
             break;
          }
@@ -203,10 +223,10 @@ class ScrimshawTemplate extends HTMLElement {
       super();
    }
    connectedCallback() {
-      this.attachShadow({mode: 'closed'});
+      this.attachShadow({ mode: 'closed' });
    }
 
-   attributeChangedCallback(name, oldValue, newValue) { 
+   attributeChangedCallback(name, oldValue, newValue) {
       if (name === 'name') {
          globalThis.templates[newValue] = this;
       }
@@ -260,15 +280,66 @@ class ScrimshawUseTemplate extends HTMLElement {
 
 class ScrimshawItem extends HTMLElement {
    connectedCallback() {
-      this.attachShadow({mode: 'closed'});
+      this.attachShadow({ mode: 'closed' });
    }
 }
 class ScrimshawSlot extends HTMLElement {
    static observedAttributes = ['name'];
 }
 
-globalThis.vars = {}
+type RawVars = { [name: string]: WritableObservable<any> }
+function makeVars(vars: RawVars) {
+   const trap = {
+      set(target: RawVars, prop: string, value: any): boolean {
+         if (prop in target) {
+            target[prop].set(value);
+         } else {
+            Reflect.set(target, prop, observable(value));
+         }
+         return true;
+      },
+
+      get(target: RawVars, prop: string) {
+         if (prop === 'update') {
+            return <T, >(val: string, fn: (oldValue: T) => T) => target[val].update(fn);
+         }
+         if (prop === 'subscribe') {
+            return <T, >(val: string, fn: (newValue: T, oldValue: T) => undefined) => target[val].subscribe(fn);
+         }
+         let obs = Reflect.get(target, prop);
+         if (obs === undefined) {
+            obs = observable(undefined);
+            Reflect.set(target, prop, obs);
+            scrimshawContext.currentObservables.push(obs);
+            return undefined;
+         }
+         scrimshawContext.currentObservables.push(obs);
+         return obs.get();
+      },
+   };
+
+   return new Proxy(vars, trap);
+};
+globalThis.testVars = makeVars({});
+globalThis.scrimshawContext = scrimshawContext;
+
+/*
+
+function getVal(name: string): any {
+   const obs = globalThis.vars[name];
+   scrimshawContext.currentObservables.push(obs);
+   return obs.get();
+}
+
+vars.foo -> rawVars.foo.get() // maybe registering a hook during evaluation
+vars.subscribeTo('foo', callback) -> rawVars.foo.subscribe(callback)
+vars.foo = 5 -> if ('foo' in rawVars) { rawVars.foo.set(5) } else { rawVars.foo = observable(5) }
+vars.update('foo', fn) -> rawVars.foo.update(fn)
+*/
+
 globalThis.templates = {}
+globalThis.observables = {}
+globalThis.vars = makeVars(globalThis.observables);
 customElements.define("scrim-shaw", ScrimshawP, { extends: "p" });
 customElements.define("s-if", ScrimshawIf);
 customElements.define("s-for", ScrimshawFor);

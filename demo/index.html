@@ -26,7 +26,8 @@
    <!-- in scrim-shaw mode regular elements evaluate their attributes as javascript-->
    <p is="scrim-shaw" color="5 + 3">Testing</p>
    <s-let name="testValue" value="5"></s-let>
-   <s-let name="testObs" value="'initial'" observable></s-let>
+   <s-let name="testObs" value="'initial'"></s-let>
+   <s-let name="buttonShown" value="'true'"></s-let>
    <s-let name="testValue2">
       <button>test button</button>
    </s-let>
@@ -34,23 +35,23 @@
    <hr />
    <pre><code>
    Observable: &lt;s-use value=&quot;vars.testObs&quot;&gt;&lt;/s-use&gt;&lt;br /&gt;
-   &lt;input type=&quot;text&quot; onInput=&quot;vars.testObs.set(this.value)&quot; /&gt;
+   &lt;input type=&quot;text&quot; onInput=&quot;vars.testObs = this.value&quot; /&gt;
    </code></pre>
    Observable: <s-use value="vars.testObs"></s-use><br />
-   <input type="text" onInput="vars.testObs.set(this.value)" />
+   <input type="text" onInput="vars.testObs = this.value" />
 
 
    <hr />
    <pre><code>
    &lt;div&gt;
-   &lt;button onclick=&quot;document.querySelector('#if-1').toggle()&quot;&gt;Toggle&lt;/button&gt; 
-   &lt;s-if id=&quot;if-1&quot; condition=&quot;true&quot;&gt;This is shown&lt;/s-if&gt;
+      &lt;button onclick=&quot;vars.buttonShown = !vars.buttonShown&quot;&gt;Toggle&lt;/button&gt; 
+      &lt;s-if id=&quot;if-1&quot; condition=&quot;vars.buttonShown&quot;&gt;This is shown&lt;/s-if&gt;
    &lt;/div&gt;
    </code></pre>
 
    <div>
-      <button onclick="document.querySelector('#if-1').toggle()">Toggle</button> 
-      <s-if id="if-1" condition="true">This is shown</s-if>
+      <button onclick="vars.buttonShown = !vars.buttonShown">Toggle</button> 
+      <s-if id="if-1" condition="vars.buttonShown">This is shown</s-if>
    </div>
    
    <hr />
