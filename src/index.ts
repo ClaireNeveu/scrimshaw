@@ -146,6 +146,33 @@ class ScrimshawLet extends HTMLElement {
    }
 }
 
+class ScrimshawUse extends HTMLElement {
+   static observedAttributes = ['value', 'clone'];
+   value: any
+
+   constructor() {
+      super();
+   }
+   connectedCallback() {
+      console.log('mounted s-use')
+   }
+
+   attributeChangedCallback(name, oldValue, newValue) {
+      switch (name) {
+         case 'value': {
+            this.value = eval(newValue);
+            console.log('using', name, newValue, this.value)
+            if (Array.isArray(this.value)) {
+               this.replaceChildren(...this.value)
+            } else {
+               this.replaceChildren(this.value)
+            }
+            break;
+         }
+      }
+   }
+}
+
 class ScrimshawTemplate extends HTMLElement {
    static observedAttributes = ['name'];
    name: string
@@ -164,7 +191,6 @@ class ScrimshawTemplate extends HTMLElement {
    }
 
    run(values: { [key: string]: Node }): Array<Node> {
-      console.log('running', values)
       const base = Array.from(this.childNodes).map(n => {
          const template = n.cloneNode(true);
          if (template.nodeName === 'S-SLOT') {
@@ -195,7 +221,6 @@ class ScrimshawUseTemplate extends HTMLElement {
    attributeChangedCallback(name, oldValue, newValue) { 
       if (this.original === undefined) {
          this.original = document.createDocumentFragment();
-         console.log('this.innerHTML', this.innerHTML)
          this.childNodes.forEach(n => this.original.appendChild(n.cloneNode(true)))
       }
       if (name === 'name') {
@@ -228,5 +253,6 @@ customElements.define("s-for", ScrimshawFor);
 customElements.define("s-item", ScrimshawItem);
 customElements.define("s-slot", ScrimshawSlot);
 customElements.define("s-let", ScrimshawLet);
+customElements.define("s-use", ScrimshawUse);
 customElements.define("s-template", ScrimshawTemplate);
 customElements.define("s-use-template", ScrimshawUseTemplate);

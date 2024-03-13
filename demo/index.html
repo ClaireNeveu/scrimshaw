@@ -51,10 +51,11 @@
          <a href="/baz">Baz</a>
       </s-slot>
       <s-slot name="mainContent">This is my cool page</s-slot>
-   </s-template>
+   </s-use-template>
+
+   <s-use value="vars.testValue2"></s-use>
 
    <!--
-      <s-use value="vars.testValue"></s-use>
       <s-subscribe value="vars.observableValue">some stuff in here</s-subscribe>
 
       <s-if id="if-1" condition="true">
