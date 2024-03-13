@@ -5,11 +5,17 @@
    <meta charset="utf-8" />
    <title>My First Parcel App</title>
    <script type="module" src="../src/index.ts"></script>
+   <style>
+      .main {
+         margin-left: 50px;
+      }
+   </style>
 </head>
 
 <body>
    <h1>Hello, World!</h1>
-   <p is="scrim-shaw" color="red">Testing</p>
+   <!-- in scrim-shaw mode regular elements evaluate their attributes as javascript-->
+   <p is="scrim-shaw" color="5 + 3">Testing</p>
 
    <s-let name="testValue" value="5"></s-let>
 
@@ -31,23 +37,32 @@
       </s-for>
    </ul>
 
-   <!--
-      <s-template name="layout">
+   <s-template name="layout">
+      <div style="display:flex">
          <div class="sidebar"><s-slot name="sidebarContent"></s-slot></div>
          <div class="main"><s-slot name="mainContent"></s-slot></div>
-      </s-template>
+      </div>
+   </s-template>
 
-      <s-use-template name="layout">
-         <s-slot name="sidebarContent">
-            <a href="/foo">Foo</a><br />
-            <a href="/bar">Bar</a><br />
-            <a href="/baz">Baz</a>
-         </s-slot>
-         <s-slot name="mainContent">This is my cool page</s-slot>
-      </s-template>
+   <s-use-template name="layout">
+      <s-slot name="sidebarContent">
+         <a href="/foo">Foo</a><br />
+         <a href="/bar">Bar</a><br />
+         <a href="/baz">Baz</a>
+      </s-slot>
+      <s-slot name="mainContent">This is my cool page</s-slot>
+   </s-template>
 
+   <!--
       <s-use value="vars.testValue"></s-use>
       <s-subscribe value="vars.observableValue">some stuff in here</s-subscribe>
+
+      <s-if id="if-1" condition="true">
+         This is shown
+         <s-else>
+            Otherwise this is shown.
+         </s-else>
+      </s-if>
    -->
 </body>
 

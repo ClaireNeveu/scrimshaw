@@ -146,8 +146,69 @@ class ScrimshawLet extends HTMLElement {
    }
 }
 
-// class ScrimshawTemplate extends HTMLElement
-// class ScrimshawUseTemplate extends HTMLElement
+class ScrimshawTemplate extends HTMLElement {
+   static observedAttributes = ['name'];
+   name: string
+
+   constructor() {
+      super();
+   }
+   connectedCallback() {
+      this.attachShadow({mode: 'closed'});
+   }
+
+   attributeChangedCallback(name, oldValue, newValue) { 
+      if (name === 'name') {
+         globalThis.templates[newValue] = this;
+      }
+   }
+
+   run(values: { [key: string]: Node }): Array<Node> {
+      console.log('running', values)
+      const base = Array.from(this.childNodes).map(n => {
+         const template = n.cloneNode(true);
+         if (template.nodeName === 'S-SLOT') {
+            return values[(template as ScrimshawSlot).getAttribute('name')!];
+         }
+         if (template instanceof HTMLElement) {
+            template.querySelectorAll('s-slot').forEach(item => {
+               item.replaceWith(values[item.getAttribute('name')!]);
+            });
+         }
+         return template;
+      })
+      return base;
+   }
+}
+class ScrimshawUseTemplate extends HTMLElement {
+   static observedAttributes = ['name'];
+   name: string
+   template: ScrimshawTemplate
+   original: DocumentFragment
+
+   constructor() {
+      super();
+   }
+   connectedCallback() {
+   }
+
+   attributeChangedCallback(name, oldValue, newValue) { 
+      if (this.original === undefined) {
+         this.original = document.createDocumentFragment();
+         console.log('this.innerHTML', this.innerHTML)
+         this.childNodes.forEach(n => this.original.appendChild(n.cloneNode(true)))
+      }
+      if (name === 'name') {
+         this.template = globalThis.templates[newValue]
+         const slots = {}
+         this.original.querySelectorAll('s-slot').forEach(slot => {
+            slots[slot.getAttribute('name')!] = slot.cloneNode(true);
+         })
+         const base = this.template.run(slots);
+         this.replaceChildren(...base);
+      }
+   }
+}
 // class ScrimshawUse extends HTMLElement lets you insert a js expression into HTML
 
 class ScrimshawItem extends HTMLElement {
@@ -155,10 +216,17 @@ class ScrimshawItem extends HTMLElement {
       this.attachShadow({mode: 'closed'});
    }
 }
+class ScrimshawSlot extends HTMLElement {
+   static observedAttributes = ['name'];
+}
 
 globalThis.vars = {}
+globalThis.templates = {}
 customElements.define("scrim-shaw", ScrimshawP, { extends: "p" });
 customElements.define("s-if", ScrimshawIf);
 customElements.define("s-for", ScrimshawFor);
 customElements.define("s-item", ScrimshawItem);
+customElements.define("s-slot", ScrimshawSlot);
 customElements.define("s-let", ScrimshawLet);
+customElements.define("s-template", ScrimshawTemplate);
+customElements.define("s-use-template", ScrimshawUseTemplate);
