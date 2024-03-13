@@ -11,6 +11,12 @@
    <h1>Hello, World!</h1>
    <p is="scrim-shaw" color="red">Testing</p>
 
+   <s-let name="testValue" value="5"></s-let>
+
+   <s-let name="testValue2">
+      <button>test button</button>
+   </s-let>
+
    <div>
       <button onclick="document.querySelector('#if-1').toggle()">Toggle</button> 
       <s-if id="if-1" condition="true">This is shown</s-if>
@@ -24,6 +30,25 @@
          <li><s-item></li>
       </s-for>
    </ul>
+
+   <!--
+      <s-template name="layout">
+         <div class="sidebar"><s-slot name="sidebarContent"></s-slot></div>
+         <div class="main"><s-slot name="mainContent"></s-slot></div>
+      </s-template>
+
+      <s-use-template name="layout">
+         <s-slot name="sidebarContent">
+            <a href="/foo">Foo</a><br />
+            <a href="/bar">Bar</a><br />
+            <a href="/baz">Baz</a>
+         </s-slot>
+         <s-slot name="mainContent">This is my cool page</s-slot>
+      </s-template>
+
+      <s-use value="vars.testValue"></s-use>
+      <s-subscribe value="vars.observableValue">some stuff in here</s-subscribe>
+   -->
 </body>
 
 </html>

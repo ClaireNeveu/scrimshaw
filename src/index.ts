@@ -1,3 +1,5 @@
+const isEmptyNode = (node: Node): boolean => node?.nodeValue?.replace(/\u00a0/g, "x").trim().length == 0
+
 class ScrimshawP extends HTMLParagraphElement {
    static observedAttributes = ["color", "size"];
 
@@ -30,18 +32,6 @@ class ScrimshawIf extends HTMLElement {
    constructor() {
       super();
       this.internals = this.attachInternals();
-   }
-
-   connectedCallback() {
-      console.log("s-if added to page.");
-   }
-
-   disconnectedCallback() {
-      console.log("s-if removed from page.");
-   }
-
-   adoptedCallback() {
-      console.log("s-if moved to new page.");
    }
 
    set(cond: boolean) {
@@ -78,18 +68,6 @@ class ScrimshawFor extends HTMLElement {
       super();
    }
 
-   connectedCallback() {
-      console.log("s-if added to page.");
-   }
-
-   disconnectedCallback() {
-      console.log("s-if removed from page.");
-   }
-
-   adoptedCallback() {
-      console.log("s-if moved to new page.");
-   }
-
    attributeChangedCallback(name, oldValue, newValue) {
       const each = eval(newValue);
       if (!Array.isArray(each)) {
@@ -117,7 +95,65 @@ class ScrimshawFor extends HTMLElement {
    }
 }
 
+class ScrimshawLet extends HTMLElement {
+   static observedAttributes = ['name', 'value'];
+   name: string
+   value: any
+   initialized: boolean
+   usingChildren: boolean
+
+   constructor() {
+      super();
+   }
+   connectedCallback() {
+      this.attachShadow({mode: 'closed'});
+   }
+
+   attributeChangedCallback(name, oldValue, newValue) {
+      if (!this.hasAttribute('value')) {
+         let value = this.childNodes;
+         // Trim leading whitespace
+         if (value[0].nodeType === 3 && isEmptyNode(value[0])) {
+            value[0].remove()
+         }
+         // Trim trailing whitespace
+         if (value[value.length - 1].nodeType === 3 && isEmptyNode(value[value.length - 1])) {
+            value[value.length - 1].remove()
+         }
+         this.value = value.length === 1 ? value[0] : value;
+         this.initialized = true;
+      }
+      switch (name) {
+         case 'name': {
+            this.name = newValue;
+            if (oldValue === null && this.initialized) {
+               globalThis.vars[this.name] = this.value;
+            } else if (oldValue !== newValue && this.initialized) {
+               delete globalThis.vars[oldValue];
+               globalThis.vars[newValue] = this.value;
+            }
+            break;
+         }
+         case 'value': {
+            this.value = eval(newValue);
+            this.initialized = true
+            if (this.name) {
+               globalThis.vars[this.name] = this.value;
+            }
+            break;
+         }
+      }
+   }
+}
+
+// class ScrimshawTemplate extends HTMLElement
+// class ScrimshawUseTemplate extends HTMLElement
+// class ScrimshawUse extends HTMLElement lets you insert a js expression into HTML
+
 class ScrimshawItem extends HTMLElement {
+   connectedCallback() {
+      this.attachShadow({mode: 'closed'});
+   }
 }
 
 globalThis.vars = {}
@@ -125,3 +161,4 @@ customElements.define("scrim-shaw", ScrimshawP, { extends: "p" });
 customElements.define("s-if", ScrimshawIf);
 customElements.define("s-for", ScrimshawFor);
 customElements.define("s-item", ScrimshawItem);
+customElements.define("s-let", ScrimshawLet);
