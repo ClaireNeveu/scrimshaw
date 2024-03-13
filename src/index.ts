@@ -40,6 +40,7 @@ class ScrimshawIf extends HTMLElement {
    #getter: () => any
    #subscribed: boolean = false;
    #renderBit: boolean
+   #original: Array<Node>
 
    constructor() {
       super();
@@ -57,6 +58,10 @@ class ScrimshawIf extends HTMLElement {
    }
 
    attributeChangedCallback(name, oldValue, newValue) {
+      if (this.#original === undefined) {
+         this.#original = Array.from(this.childNodes);
+      }
+
       switch (name) {
          case 'b':
          case 'condition': {
@@ -73,9 +78,9 @@ class ScrimshawIf extends HTMLElement {
             }
             scrimshawContext.currentObservables.length = 0;
             if (this.condition) {
-               this.style.display = 'inline-block';
+               this.replaceChildren(...this.#original)
             } else {
-               this.style.display = 'none';
+               this.innerText = '';
             }
             break;
          }
