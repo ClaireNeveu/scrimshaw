@@ -2,6 +2,9 @@ import { BaseObservable, Observable, WritableObservable, observable } from "micr
 
 const isEmptyNode = (node: Node): boolean => node?.nodeValue?.replace(/\u00a0/g, "x").trim().length == 0
 
+// eval(`(vars, observables, locals, slots) => ${code}`)
+const makeThunk = (code: string): (() => any) => eval(`(locals) => ${code}`);
+
 type ScrimshawContext = {
    currentObservables: Array<Observable<any>>
 }

@@ -126,6 +126,31 @@
             Otherwise this is shown.
          </s-else>
       </s-if>
+
+      <script>
+         const itemDefaults = {
+            name: 
+         }
+      </script>
+
+      <s-template name="todoListItem">
+         <s-let local name="row" value="var.entries[slots.key]"><s-let>
+         <div class="todoListItem">
+            <div class="name">
+               <input value="locals.row.name" onInput="save(slots.key, 'name', this.value)"/>
+            </div>
+            <div class="name">
+               <input value="locals.row.description" onInput="save(slots.key, 'description', this.value)"/>
+            </div>
+         </div>
+      </s-template>
+
+      <h1>My TODO List</h1>
+
+      <s-for each="vars.entries">
+         <s-item></s-item>
+      </s-for>
+      <button onClick="vars.entries += template.todoListItem(vars.entries.length))">New Item</button>
    -->
 </body>
 
